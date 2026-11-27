@@ -124,8 +124,14 @@ def create_grn(request, ):
 	# If required keys are not present, return an error
 	if not all(required_keys_present):
 		return APIResponse(f"Missing required key(s) [{', '.join(required_keys)}]", status.HTTP_400_BAD_REQUEST)
-	# Make the PO_ID key consistent as the identifier
-	request_data["po_id"] = request_data[identifier]
+	# Make the PO_ID key consistent as the identifier.
+	# Strip surrounding whitespace (e.g. "164853 " typed/pasted at the store) and ensure the PO number is numeric,
+	# since it is used to look up the PO in ByD and to build the integer GRN number.
+	po_id = str(request_data[identifier]).strip()
+	if not po_id.isdigit():
+		return APIResponse(f"Invalid PO Number '{request_data[identifier]}'. PO Number must contain only digits.",
+						   status.HTTP_400_BAD_REQUEST)
+	request_data["po_id"] = po_id
 	try:
 		# Create the GRN
 		created_grn = GoodsReceivedNote().save(grn_data=request_data)

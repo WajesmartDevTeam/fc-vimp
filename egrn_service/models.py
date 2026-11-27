@@ -284,7 +284,7 @@ class GoodsReceivedNote(models.Model):
 	
 	def save(self, *args, **kwargs):
 		grn_data = kwargs.pop('grn_data')
-		po_id = grn_data['po_id']
+		po_id = str(grn_data['po_id']).strip()
 		# Set the store where this GRN is being received
 		self.store = Store.objects.all()[0]
 		try:
@@ -299,7 +299,7 @@ class GoodsReceivedNote(models.Model):
 			raise e
 		
 		# Create the GRN Number by appending a number to the end of the PO ID
-		self.grn_number = int(str(po_id) + '1')
+		self.grn_number = int(str(self.purchase_order.po_id).strip() + '1')
 		# Progressively increment the GRN number until it is unique
 		saved_as_grn = False # Boolean to control the loop
 		while not saved_as_grn:
